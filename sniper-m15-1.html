@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FERY · SNIPER M15</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #04080f;
+  --bg2:     #080f1c;
+  --bg3:     #0c1628;
+  --card:    #091224;
+  --border:  #112240;
+  --border2: #1a3358;
+  --gold:    #c8a84a;
+  --gold-hi: #f0c350;
+  --gold-lo: #6a5520;
+  --gold-g:  rgba(200,168,74,0.10);
+  --green:   #00e676;
+  --green-d: rgba(0,230,118,0.08);
+  --green-b: rgba(0,230,118,0.25);
+  --red:     #ff4060;
+  --red-d:   rgba(255,64,96,0.08);
+  --red-b:   rgba(255,64,96,0.25);
+  --orange:  #ff9800;
+  --orange-d:rgba(255,152,0,0.10);
+  --text:    #a8c0dc;
+  --text2:   #3a5878;
+  --text3:   #1a2f44;
+  --white:   #ddeeff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* HEADER */
+.hdr {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px;
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; z-index: 99;
+}
+.hdr-brand { font-size: 9px; letter-spacing: 3px; color: var(--gold); margin-bottom: 3px; }
+.hdr-title { font-size: 20px; font-weight: 800; color: var(--white); letter-spacing: 1px; }
+.hdr-r { text-align: right; }
+.hdr-clock { font-size: 13px; font-weight: 600; color: var(--gold-hi); }
+.sess-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 3px 10px; margin-top: 4px;
+  font-size: 9px; letter-spacing: 1.5px; color: var(--text2);
+}
+.sdot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); transition: all 0.3s; }
+.sdot.on  { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.sdot.lon { background: var(--gold);  box-shadow: 0 0 8px var(--gold); }
+
+/* STATUS */
+.statusbar {
+  background: var(--bg3); border-bottom: 1px solid var(--border);
+  padding: 7px 18px; display: flex; justify-content: space-between; align-items: center;
+}
+.api-st { display: flex; align-items: center; gap: 6px; font-size: 9px; letter-spacing: 1px; color: var(--text2); }
+.adot { width: 5px; height: 5px; border-radius: 50%; background: var(--text3); }
+.adot.ok   { background: var(--green); }
+.adot.err  { background: var(--red); }
+.adot.load { background: var(--gold); animation: blink 0.8s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.live-price { font-size: 13px; font-weight: 700; color: var(--white); }
+.price-chg { font-size: 10px; margin-left: 6px; }
+.price-chg.up   { color: var(--green); }
+.price-chg.down { color: var(--red); }
+
+/* MARKET STATE BANNER */
+.mkt-banner {
+  margin: 14px 16px 0;
+  border-radius: 10px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid transparent;
+}
+.mkt-banner.trending-bull { background: var(--green-d); border-color: var(--green-b); }
+.mkt-banner.trending-bear { background: var(--red-d);   border-color: var(--red-b); }
+.mkt-banner.sideways      { background: var(--orange-d); border-color: rgba(255,152,0,0.3); }
+.mkt-icon { font-size: 22px; }
+.mkt-info {}
+.mkt-lbl  { font-size: 8px; letter-spacing: 2px; color: var(--text2); margin-bottom: 3px; }
+.mkt-state { font-size: 14px; font-weight: 800; letter-spacing: 1.5px; }
+.mkt-state.bull { color: var(--green); }
+.mkt-state.bear { color: var(--red); }
+.mkt-state.side { color: var(--orange); }
+.mkt-desc { font-size: 9px; color: var(--text2); margin-top: 3px; }
+
+/* SIDEWAYS WARNING */
+.sideway-warn {
+  margin: 10px 16px 0;
+  background: var(--orange-d);
+  border: 1px solid rgba(255,152,0,0.3);
+  border-radius: 10px; padding: 14px 16px;
+}
+.sw-title { font-size: 11px; font-weight: 700; color: var(--orange); margin-bottom: 6px; letter-spacing: 1px; }
+.sw-list  { display: flex; flex-direction: column; gap: 5px; }
+.sw-item  { font-size: 9px; color: var(--text2); display: flex; align-items: flex-start; gap: 6px; }
+.sw-item::before { content: '▸'; color: var(--orange); flex-shrink: 0; }
+
+/* MAIN SIGNAL CARD */
+.sig-wrap { padding: 14px 16px 0; }
+.sig-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.sig-card.bull { border-color: var(--green-b); box-shadow: 0 0 24px rgba(0,230,118,0.06); }
+.sig-card.bear { border-color: var(--red-b);   box-shadow: 0 0 24px rgba(255,64,96,0.06); }
+
+.sig-top {
+  padding: 20px 18px 16px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.sig-dir {
+  font-size: 52px; font-weight: 800; letter-spacing: 2px; line-height: 1;
+}
+.sig-dir.buy  { color: var(--green); text-shadow: 0 0 40px rgba(0,230,118,0.4); }
+.sig-dir.sell { color: var(--red);   text-shadow: 0 0 40px rgba(255,64,96,0.4); }
+.sig-dir.wait { color: var(--text2); font-size: 36px; }
+.sig-dir.side { color: var(--orange); font-size: 28px; }
+
+.sig-sub { font-size: 9px; letter-spacing: 1.5px; color: var(--text2); margin-top: 6px; }
+
+.sig-right { text-align: right; }
+.conf-lbl { font-size: 8px; color: var(--text2); letter-spacing: 1.5px; margin-bottom: 4px; }
+.conf-num { font-size: 28px; font-weight: 800; }
+.conf-num.high { color: var(--gold-hi); }
+.conf-num.mid  { color: var(--gold); }
+.conf-num.low  { color: var(--text2); }
+.conf-bar-wrap { height: 3px; background: var(--bg3); border-radius: 2px; margin-top: 5px; width: 80px; overflow: hidden; }
+.conf-bar { height: 100%; border-radius: 2px; transition: width 0.7s ease; }
+.conf-bar.high { background: var(--gold-hi); }
+.conf-bar.mid  { background: var(--gold); }
+.conf-bar.low  { background: var(--text2); }
+
+/* INDICATOR STRIP */
+.ind-strip {
+  padding: 10px 18px;
+  border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr 1px 1fr;
+  gap: 0; align-items: center;
+}
+.ind-item { text-align: center; padding: 0 4px; }
+.ind-div  { width: 1px; height: 28px; background: var(--border); }
+.ind-lbl  { font-size: 7px; color: var(--text2); letter-spacing: 1px; margin-bottom: 4px; }
+.ind-val  { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+.ind-val.bull { color: var(--green); }
+.ind-val.bear { color: var(--red); }
+.ind-val.neu  { color: var(--text2); }
+.ind-val.side { color: var(--orange); }
+
+/* ENTRY ZONE */
+.entry-zone {
+  margin: 10px 16px 0;
+  border-radius: 10px; padding: 14px 16px;
+  border: 1px solid var(--border2);
+}
+.entry-zone.buy  { background: var(--green-d); border-color: var(--green-b); }
+.entry-zone.sell { background: var(--red-d);   border-color: var(--red-b); }
+.ez-lbl   { font-size: 8px; letter-spacing: 2.5px; color: var(--text2); margin-bottom: 8px; }
+.ez-range { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.ez-range.buy  { color: var(--green); }
+.ez-range.sell { color: var(--red); }
+.ez-hint  { font-size: 9px; color: var(--text2); }
+
+/* ATR CHIPS */
+.atr-row { display: flex; gap: 8px; margin: 10px 16px 0; }
+.atr-chip { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; text-align: center; }
+.atr-lbl  { font-size: 8px; color: var(--text2); letter-spacing: 1.5px; margin-bottom: 4px; }
+.atr-val  { font-size: 14px; font-weight: 700; color: var(--gold-hi); }
+
+/* LEVELS */
+.levels { margin: 10px 16px 0; display: flex; flex-direction: column; gap: 1px; }
+.lvl-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 13px; background: var(--bg3);
+}
+.lvl-row:first-child { border-radius: 8px 8px 0 0; }
+.lvl-row:last-child  { border-radius: 0 0 8px 8px; }
+.lvl-k   { font-size: 9px; color: var(--text2); letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
+.lvl-tag { font-size: 8px; color: var(--text3); background: var(--bg2); padding: 1px 5px; border-radius: 3px; }
+.lvl-v   { font-size: 13px; font-weight: 600; }
+.lvl-v.sl  { color: var(--red); }
+.lvl-v.tp1 { color: var(--green); }
+.lvl-v.tp2 { color: #40d0b8; }
+.lvl-pts { font-size: 9px; color: var(--text2); margin-left: 4px; }
+
+/* RR */
+.rr-row {
+  margin: 10px 16px 0;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 13px;
+  background: var(--gold-g); border: 1px solid var(--gold-lo); border-radius: 8px;
+}
+.rr-k { font-size: 9px; color: var(--gold-lo); letter-spacing: 2px; }
+.rr-v { font-size: 16px; font-weight: 700; color: var(--gold-hi); }
+
+/* FACTORS */
+.fac-wrap { margin: 10px 16px 0; }
+.fac-lbl { font-size: 8px; letter-spacing: 2px; color: var(--text3); margin-bottom: 8px; }
+.fac-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.fac-row:last-child { border-bottom: none; }
+.fac-name { font-size: 10px; color: var(--text2); }
+.fac-val  { font-size: 10px; font-weight: 600; }
+.fac-val.bull { color: var(--green); }
+.fac-val.bear { color: var(--red); }
+.fac-val.warn { color: var(--gold); }
+.fac-val.side { color: var(--orange); }
+.fac-val.neu  { color: var(--text2); }
+
+/* REFRESH */
+.refresh-wrap { padding: 14px 16px 0; }
+.refresh-btn {
+  width: 100%; padding: 13px;
+  background: var(--gold); border: none; border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  color: var(--bg); cursor: pointer; transition: all 0.15s;
+}
+.refresh-btn:active { transform: scale(0.97); }
+.refresh-btn:disabled { background: var(--bg3); color: var(--text2); cursor: not-allowed; }
+.countdown { text-align: center; margin-top: 8px; font-size: 9px; color: var(--text2); }
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div>
+    <div class="hdr-brand">FERY · SNIPER M15</div>
+    <div class="hdr-title">XAU / USD</div>
+  </div>
+  <div class="hdr-r">
+    <div class="hdr-clock" id="clock">--:--:-- WIB</div>
+    <div class="sess-badge">
+      <div class="sdot" id="sdot"></div>
+      <span id="sessLabel">--</span>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="api-st">
+    <div class="adot load" id="adot"></div>
+    <span id="apiStatus">Memuat...</span>
+  </div>
+  <div>
+    <span class="live-price" id="livePrice">-- </span>
+    <span class="price-chg" id="priceChg"></span>
+  </div>
+</div>
+
+<!-- MARKET STATE BANNER -->
+<div class="mkt-banner" id="mktBanner" style="display:none">
+  <div class="mkt-icon" id="mktIcon">--</div>
+  <div class="mkt-info">
+    <div class="mkt-lbl">KONDISI MARKET</div>
+    <div class="mkt-state" id="mktState">--</div>
+    <div class="mkt-desc" id="mktDesc">--</div>
+  </div>
+</div>
+
+<!-- SIDEWAYS WARNING -->
+<div class="sideway-warn" id="sidewaysWarn" style="display:none">
+  <div class="sw-title">⚠ MARKET SIDEWAYS — SKIP TRADING</div>
+  <div class="sw-list">
+    <div class="sw-item">ATR rendah — pergerakan harga kecil, spread makan profit</div>
+    <div class="sw-item">SuperTrend bolak-balik flip — sinyal palsu tinggi</div>
+    <div class="sw-item">Tunggu breakout atau session London/NY buka</div>
+    <div class="sw-item">Kalau mau entry, tunggu ATR naik di atas threshold</div>
+  </div>
+</div>
+
+<!-- ATR CHIPS -->
+<div class="atr-row" id="atrRow" style="display:none">
+  <div class="atr-chip">
+    <div class="atr-lbl">ATR M15</div>
+    <div class="atr-val" id="aM15">--</div>
+  </div>
+  <div class="atr-chip">
+    <div class="atr-lbl">ATR THRESHOLD</div>
+    <div class="atr-val" id="aThresh">--</div>
+  </div>
+  <div class="atr-chip">
+    <div class="atr-lbl">ST LINE</div>
+    <div class="atr-val" id="stLine">--</div>
+  </div>
+</div>
+
+<!-- SIGNAL CARD -->
+<div class="sig-wrap">
+  <div class="sig-card" id="sigCard">
+    <div id="sigContent">
+      <div style="text-align:center;padding:40px 20px">
+        <div style="font-size:28px;margin-bottom:10px;opacity:0.3">⚡</div>
+        <div style="font-size:10px;color:var(--text3);line-height:2" id="loadTxt">Memuat data Binance...<br/>SuperTrend + EMA M15 sedang dihitung</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ENTRY ZONE -->
+<div class="entry-zone" id="entryZone" style="display:none">
+  <div class="ez-lbl">ENTRY RANGE ZONE</div>
+  <div class="ez-range" id="ezRange">-- – --</div>
+  <div class="ez-hint" id="ezHint">--</div>
+</div>
+
+<!-- LEVELS -->
+<div class="levels" id="levelsWrap" style="display:none">
+  <div class="lvl-row">
+    <div class="lvl-k">STOP LOSS</div>
+    <div><span class="lvl-v sl" id="lSL">--</span><span class="lvl-pts" id="lSLpts"></span></div>
+  </div>
+  <div class="lvl-row">
+    <div class="lvl-k">TP 1 <span class="lvl-tag">1.5× ATR</span></div>
+    <div><span class="lvl-v tp1" id="lTP1">--</span><span class="lvl-pts" id="lTP1pts"></span></div>
+  </div>
+  <div class="lvl-row">
+    <div class="lvl-k">TP 2 <span class="lvl-tag">3× ATR</span></div>
+    <div><span class="lvl-v tp2" id="lTP2">--</span><span class="lvl-pts" id="lTP2pts"></span></div>
+  </div>
+</div>
+
+<!-- RR -->
+<div class="rr-row" id="rrWrap" style="display:none">
+  <div class="rr-k">R : R RATIO</div>
+  <div class="rr-v">1 : 1.50</div>
+</div>
+
+<!-- FACTORS -->
+<div class="fac-wrap" id="facWrap" style="display:none">
+  <div class="fac-lbl">SIGNAL FACTORS · M15</div>
+  <div class="fac-row"><div class="fac-name">SuperTrend M15</div><div class="fac-val" id="fST">--</div></div>
+  <div class="fac-row"><div class="fac-name">EMA 9 vs EMA 21</div><div class="fac-val" id="fEMA">--</div></div>
+  <div class="fac-row"><div class="fac-name">Harga vs EMA 9</div><div class="fac-val" id="fPrice">--</div></div>
+  <div class="fac-row"><div class="fac-name">ATR (market energy)</div><div class="fac-val" id="fATR">--</div></div>
+  <div class="fac-row"><div class="fac-name">Pullback ke EMA</div><div class="fac-val" id="fPull">--</div></div>
+  <div class="fac-row"><div class="fac-name">Session</div><div class="fac-val" id="fSess">--</div></div>
+</div>
+
+<!-- REFRESH -->
+<div class="refresh-wrap">
+  <button class="refresh-btn" id="refreshBtn" onclick="loadAndAnalyze()">⚡ REFRESH SIGNAL</button>
+  <div class="countdown" id="countdown"></div>
+</div>
+
+<script>
+const SYMBOL     = 'PAXGUSDT';
+const ST_PERIOD  = 10;
+const ST_MULT    = 2.0;
+const EMA_FAST   = 9;
+const EMA_SLOW   = 21;
+const ATR_THRESH = 1.5; // Minimum ATR — di bawah ini = sideways
+const REFRESH_S  = 30;
+
+let cTimer = null, aTimer = null, cVal = REFRESH_S;
+
+// ============================================================
+// CLOCK
+// ============================================================
+function wibNow() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+}
+function updateClock() {
+  const t = wibNow();
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('clock').textContent = `${p(t.getHours())}:${p(t.getMinutes())}:${p(t.getSeconds())} WIB`;
+  updateSession(t.getHours());
+}
+function updateSession(h) {
+  const dot = document.getElementById('sdot');
+  const lbl = document.getElementById('sessLabel');
+  dot.className = 'sdot';
+  if (h >= 20 || h < 4)        { lbl.textContent = 'NEW YORK'; dot.classList.add('on'); }
+  else if (h >= 14 && h < 20)  { lbl.textContent = 'LONDON';   dot.classList.add('lon'); }
+  else if (h >= 2  && h < 10)  { lbl.textContent = 'TOKYO'; }
+  else                          { lbl.textContent = 'OFF SESSION'; }
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============================================================
+// API
+// ============================================================
+function parseKlines(raw) {
+  return raw.map(k => ({
+    open:  parseFloat(k[1]),
+    high:  parseFloat(k[2]),
+    low:   parseFloat(k[3]),
+    close: parseFloat(k[4]),
+  }));
+}
+async function fetchKlines(iv, limit = 150) {
+  const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=${SYMBOL}&interval=${iv}&limit=${limit}`);
+  return parseKlines(await r.json());
+}
+async function fetchTicker() {
+  const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${SYMBOL}`);
+  const d = await r.json();
+  return { price: parseFloat(d.lastPrice), change: parseFloat(d.priceChangePercent) };
+}
+
+// ============================================================
+// INDICATORS
+// ============================================================
+function calcEMA(closes, period) {
+  if (closes.length < period) return null;
+  const k = 2 / (period + 1);
+  let e = closes.slice(0, period).reduce((a,b) => a+b, 0) / period;
+  for (let i = period; i < closes.length; i++) e = closes[i] * k + e * (1-k);
+  return e;
+}
+
+function calcATR(candles, period = 14) {
+  if (candles.length < period + 1) return null;
+  const trs = candles.slice(1).map((c,i) => Math.max(
+    c.high - c.low,
+    Math.abs(c.high - candles[i].close),
+    Math.abs(c.low  - candles[i].close)
+  ));
+  return trs.slice(-period).reduce((a,b) => a+b, 0) / period;
+}
+
+function calcSuperTrend(candles, period = 10, mult = 2.0) {
+  if (candles.length < period + 2) return null;
+  let prevUpper = 0, prevLower = 0, prevTrend = 1;
+  let upper = 0, lower = 0, trend = 1;
+
+  for (let i = period; i < candles.length; i++) {
+    const slice = candles.slice(i - period, i + 1);
+    const atr = calcATR(slice, period);
+    if (!atr) continue;
+    const hl2 = (candles[i].high + candles[i].low) / 2;
+
+    upper = hl2 + mult * atr;
+    lower = hl2 - mult * atr;
+
+    if (i > period) {
+      if (lower < prevLower || candles[i-1].close < prevLower) lower = Math.max(lower, prevLower);
+      if (upper > prevUpper || candles[i-1].close > prevUpper) upper = Math.min(upper, prevUpper);
+    }
+
+    if      (candles[i].close > prevUpper) trend = 1;
+    else if (candles[i].close < prevLower) trend = -1;
+    else trend = prevTrend;
+
+    prevUpper = upper; prevLower = lower; prevTrend = trend;
+  }
+  return { trend, upper, lower };
+}
+
+// Sideways detection
+function detectSideways(candles, atr) {
+  if (!atr) return true;
+  // ATR terlalu kecil
+  if (atr < ATR_THRESH) return true;
+
+  // Cek berapa kali ST flip dalam 10 candle terakhir
+  const recent = candles.slice(-15);
+  let flips = 0;
+  let prevT = null;
+  for (let i = ST_PERIOD; i < recent.length; i++) {
+    const slice = recent.slice(i - ST_PERIOD, i + 1);
+    const st = calcSuperTrend(slice, ST_PERIOD, ST_MULT);
+    if (!st) continue;
+    if (prevT !== null && st.trend !== prevT) flips++;
+    prevT = st.trend;
+  }
+  // Kalau flip >= 2 dalam 15 candle = choppy
+  if (flips >= 2) return true;
+
+  return false;
+}
+
+// ============================================================
+// ANALYZE
+// ============================================================
+function analyze(m15, ticker) {
+  const closes = m15.map(c => c.close);
+  const price  = ticker.price;
+
+  const st   = calcSuperTrend(m15, ST_PERIOD, ST_MULT);
+  const ema9  = calcEMA(closes, EMA_FAST);
+  const ema21 = calcEMA(closes, EMA_SLOW);
+  const atr   = calcATR(m15, 14);
+
+  if (!st || !ema9 || !ema21 || !atr) return null;
+
+  // Sideways check
+  const isSideways = detectSideways(m15, atr);
+
+  // Session
+  const h = wibNow().getHours();
+  const activeSess = (h >= 14 && h < 24) || (h >= 0 && h < 4);
+  let sessLabel = 'OFF SESSION';
+  if (h >= 20 || h < 4)       sessLabel = 'NEW YORK ✓';
+  else if (h >= 14 && h < 20) sessLabel = 'LONDON ✓';
+  else if (h >= 2 && h < 10)  sessLabel = 'TOKYO';
+
+  // EMA trend
+  const emaBull = ema9 > ema21 && price > ema9;
+  const emaBear = ema9 < ema21 && price < ema9;
+  const emaDir  = emaBull ? 'BULL' : emaBear ? 'BEAR' : 'NEUTRAL';
+
+  // ST trend
+  const stBull = st.trend === 1;
+  const stBear = st.trend === -1;
+
+  // Pullback
+  const nearEMA9  = Math.abs(price - ema9)  < atr * 0.5;
+  const nearEMA21 = Math.abs(price - ema21) < atr * 0.7;
+  const pullback  = nearEMA9 || nearEMA21;
+
+  // Direction
+  let direction = 'WAIT';
+  let conf = 0;
+
+  if (!isSideways) {
+    if (stBull && emaBull) {
+      direction = 'BUY';
+      conf = 60;
+      if (pullback)    conf += 15;
+      if (activeSess)  conf += 15;
+      if (atr > ATR_THRESH * 2) conf += 10; // High volatility bonus
+    } else if (stBear && emaBear) {
+      direction = 'SELL';
+      conf = 60;
+      if (pullback)    conf += 15;
+      if (activeSess)  conf += 15;
+      if (atr > ATR_THRESH * 2) conf += 10;
+    } else {
+      direction = 'WAIT';
+      conf = 0;
+    }
+  }
+
+  conf = Math.min(conf, 95);
+
+  // Entry range
+  const rangeHalf = atr * 0.3;
+
+  // SL/TP
+  let sl, tp1, tp2;
+  if (direction === 'BUY') {
+    sl  = price - atr;
+    tp1 = price + atr * 1.5;
+    tp2 = price + atr * 3.0;
+  } else if (direction === 'SELL') {
+    sl  = price + atr;
+    tp1 = price - atr * 1.5;
+    tp2 = price - atr * 3.0;
+  }
+
+  // Market state description
+  let mktState, mktDesc, mktIcon, mktClass;
+  if (isSideways) {
+    mktState = 'SIDEWAYS'; mktIcon = '⚠️';
+    mktDesc  = `ATR ${atr.toFixed(2)} — market choppy, skip trading`;
+    mktClass = 'sideways';
+  } else if (stBull && emaBull) {
+    mktState = 'TRENDING BULLISH'; mktIcon = '🟢';
+    mktDesc  = `ST hijau + EMA stack bullish · ATR ${atr.toFixed(2)}`;
+    mktClass = 'trending-bull';
+  } else if (stBear && emaBear) {
+    mktState = 'TRENDING BEARISH'; mktIcon = '🔴';
+    mktDesc  = `ST merah + EMA stack bearish · ATR ${atr.toFixed(2)}`;
+    mktClass = 'trending-bear';
+  } else {
+    mktState = 'MIXED'; mktIcon = '⚡';
+    mktDesc  = 'ST dan EMA belum align — tunggu konfirmasi';
+    mktClass = 'sideways';
+  }
+
+  return {
+    direction, conf, isSideways,
+    price, rangeHalf,
+    sl, tp1, tp2,
+    atr: atr.toFixed(2),
+    stLine: (stBull ? st.lower : st.upper).toFixed(2),
+    stTrend: stBull ? 'BULL' : 'BEAR',
+    emaDir, ema9, ema21,
+    pullback, nearEMA9, nearEMA21,
+    activeSess, sessLabel,
+    mktState, mktDesc, mktIcon, mktClass,
+  };
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(r, ticker) {
+  const dir    = r.direction;
+  const isBuy  = dir === 'BUY';
+  const isSell = dir === 'SELL';
+  const isSide = r.isSideways;
+  const isWait = dir === 'WAIT';
+
+  // Market banner
+  const banner = document.getElementById('mktBanner');
+  banner.style.display = 'flex';
+  banner.className = 'mkt-banner ' + r.mktClass;
+  document.getElementById('mktIcon').textContent  = r.mktIcon;
+  document.getElementById('mktState').textContent = r.mktState;
+  document.getElementById('mktState').className   = 'mkt-state ' + (isSide ? 'side' : isBuy ? 'bull' : isSell ? 'bear' : 'side');
+  document.getElementById('mktDesc').textContent  = r.mktDesc;
+
+  // Sideways warning
+  document.getElementById('sidewaysWarn').style.display = isSide ? 'block' : 'none';
+
+  // ATR chips
+  document.getElementById('atrRow').style.display = 'flex';
+  document.getElementById('aM15').textContent   = r.atr;
+  document.getElementById('aThresh').textContent = ATR_THRESH.toFixed(1);
+  document.getElementById('stLine').textContent  = r.stLine;
+
+  // Signal card
+  const card = document.getElementById('sigCard');
+  card.className = 'sig-card' + (isBuy ? ' bull' : isSell ? ' bear' : '');
+
+  const confClass = r.conf >= 75 ? 'high' : r.conf >= 50 ? 'mid' : 'low';
+
+  document.getElementById('sigContent').innerHTML = `
+    <div class="sig-top">
+      <div>
+        <div class="sig-dir ${isBuy ? 'buy' : isSell ? 'sell' : isSide ? 'side' : 'wait'}">
+          ${isBuy ? 'BUY' : isSell ? 'SELL' : isSide ? 'SKIP' : 'WAIT'}
+        </div>
+        <div class="sig-sub">${isBuy || isSell ? 'SuperTrend + EMA M15' : isSide ? 'Market sideways — jangan entry' : 'ST dan EMA belum align'}</div>
+      </div>
+      <div class="sig-right">
+        <div class="conf-lbl">CONFIDENCE</div>
+        <div class="conf-num ${confClass}">${r.conf > 0 ? r.conf + '%' : '--'}</div>
+        <div class="conf-bar-wrap">
+          <div class="conf-bar ${confClass}" style="width:${r.conf}%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="ind-strip">
+      <div class="ind-item">
+        <div class="ind-lbl">ST M15</div>
+        <div class="ind-val ${r.stTrend === 'BULL' ? 'bull' : 'bear'}">${r.stTrend}</div>
+      </div>
+      <div class="ind-div"></div>
+      <div class="ind-item">
+        <div class="ind-lbl">EMA</div>
+        <div class="ind-val ${r.emaDir === 'BULL' ? 'bull' : r.emaDir === 'BEAR' ? 'bear' : 'neu'}">${r.emaDir}</div>
+      </div>
+      <div class="ind-div"></div>
+      <div class="ind-item">
+        <div class="ind-lbl">PULLBACK</div>
+        <div class="ind-val ${r.pullback ? (isBuy ? 'bull' : 'bear') : 'neu'}">${r.pullback ? 'YES' : 'NO'}</div>
+      </div>
+      <div class="ind-div"></div>
+      <div class="ind-item">
+        <div class="ind-lbl">SESSION</div>
+        <div class="ind-val ${r.activeSess ? 'bull' : 'neu'}">${r.activeSess ? 'AKTIF' : 'OFF'}</div>
+      </div>
+    </div>
+  `;
+
+  // Entry zone
+  const ez = document.getElementById('entryZone');
+  if (isBuy || isSell) {
+    ez.style.display = 'block';
+    ez.className = 'entry-zone ' + (isBuy ? 'buy' : 'sell');
+    const lo = (r.price - r.rangeHalf).toFixed(2);
+    const hi = (r.price + r.rangeHalf).toFixed(2);
+    document.getElementById('ezRange').textContent = `${lo} – ${hi}`;
+    document.getElementById('ezRange').className = 'ez-range ' + (isBuy ? 'buy' : 'sell');
+    document.getElementById('ezHint').textContent =
+      `${isBuy ? 'BUY' : 'SELL'} di dalam range ini · ${r.pullback ? '✓ Dekat EMA — timing bagus' : 'Market entry — hati-hati slippage'}`;
+  } else {
+    ez.style.display = 'none';
+  }
+
+  // Levels
+  const lw = document.getElementById('levelsWrap');
+  const rw = document.getElementById('rrWrap');
+  if (isBuy || isSell) {
+    lw.style.display = 'flex';
+    rw.style.display = 'flex';
+    const atr = parseFloat(r.atr);
+    document.getElementById('lSL').textContent   = r.sl.toFixed(2);
+    document.getElementById('lTP1').textContent  = r.tp1.toFixed(2);
+    document.getElementById('lTP2').textContent  = r.tp2.toFixed(2);
+    document.getElementById('lSLpts').textContent  = ` (${atr.toFixed(2)} pts)`;
+    document.getElementById('lTP1pts').textContent = ` (${(atr*1.5).toFixed(2)} pts)`;
+    document.getElementById('lTP2pts').textContent = ` (${(atr*3.0).toFixed(2)} pts)`;
+  } else {
+    lw.style.display = 'none';
+    rw.style.display = 'none';
+  }
+
+  // Factors
+  const fw = document.getElementById('facWrap');
+  fw.style.display = 'block';
+  setF('fST',    r.stTrend === 'BULL' ? '↑ BULL' : '↓ BEAR', r.stTrend === 'BULL' ? 'bull' : 'bear');
+  setF('fEMA',   r.emaDir  === 'BULL' ? '↑ BULL' : r.emaDir === 'BEAR' ? '↓ BEAR' : '─ NEUTRAL', r.emaDir === 'BULL' ? 'bull' : r.emaDir === 'BEAR' ? 'bear' : 'neu');
+  setF('fPrice', r.price > r.ema9 ? '↑ Di atas EMA9' : '↓ Di bawah EMA9', r.price > r.ema9 ? 'bull' : 'bear');
+  setF('fATR',   `${r.atr} pts ${parseFloat(r.atr) >= ATR_THRESH ? '✓ OK' : '⚠ RENDAH'}`, parseFloat(r.atr) >= ATR_THRESH ? 'bull' : 'side');
+  setF('fPull',  r.pullback ? (r.nearEMA9 ? '✓ Dekat EMA9' : '✓ Dekat EMA21') : '─ Tidak pullback', r.pullback ? (isBuy ? 'bull' : 'bear') : 'neu');
+  setF('fSess',  r.sessLabel, r.activeSess ? 'bull' : 'neu');
+}
+
+function setF(id, txt, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = txt;
+  el.className = 'fac-val ' + cls;
+}
+
+// ============================================================
+// MAIN LOAD
+// ============================================================
+async function loadAndAnalyze() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  btn.textContent = 'MEMUAT...';
+  document.getElementById('adot').className = 'adot load';
+  document.getElementById('apiStatus').textContent = 'Mengambil data...';
+
+  clearTimeout(aTimer);
+  clearInterval(cTimer);
+
+  try {
+    const [m15, ticker] = await Promise.all([
+      fetchKlines('15m', 150),
+      fetchTicker()
+    ]);
+
+    document.getElementById('adot').className = 'adot ok';
+    document.getElementById('apiStatus').textContent = 'Binance · Live';
+    document.getElementById('livePrice').textContent = ticker.price.toFixed(2);
+    const chg = ticker.change;
+    const chgEl = document.getElementById('priceChg');
+    chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+    chgEl.className = 'price-chg ' + (chg >= 0 ? 'up' : 'down');
+
+    const result = analyze(m15, ticker);
+    if (result) render(result, ticker);
+
+  } catch(e) {
+    document.getElementById('adot').className = 'adot err';
+    document.getElementById('apiStatus').textContent = 'Error · Cek VPN';
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⚡ REFRESH SIGNAL';
+
+  cVal = REFRESH_S;
+  document.getElementById('countdown').textContent = `Auto refresh dalam ${cVal}s`;
+  cTimer = setInterval(() => {
+    cVal--;
+    document.getElementById('countdown').textContent = `Auto refresh dalam ${cVal}s`;
+    if (cVal <= 0) clearInterval(cTimer);
+  }, 1000);
+
+  aTimer = setTimeout(loadAndAnalyze, REFRESH_S * 1000);
+}
+
+loadAndAnalyze();
+</script>
+</body>
+</html>
